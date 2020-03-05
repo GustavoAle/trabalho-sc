@@ -24,8 +24,8 @@ module engrenagem(){
 
 module parafuso(){
     union(){
-        translate([0,0,1.5])
-        cylinder(h=3,d=5.6,center=true);
+        translate([0,0,5.5])
+        cylinder(h=10,d=5.6,center=true);
         cylinder(h=5,d=3.5,center=true);
     }
 }
@@ -34,33 +34,6 @@ module chanfro(){
     translate([0,10,6])
     cube([6,6,8],center=true);
 }
-
-module encaixe(){
-
-    union(){
-
-        translate([0,10,5.8])
-        cube([5.5,5.5,7],center=true);
-
-        difference(){
-            union(){
-                /*centro*/
-                translate([0,21.5,5.8])
-                cylinder(h=7,d=35,center=true);
-
-                /*limitador*/
-                translate([0,21.5,2.3])
-                cylinder(h=0.6,d=39,center=true);
-            }
-            /*furo*/
-            translate([0,21.5,5.8])
-            cylinder(h=8,d=23,center=true);
-        }
-
-    }
-
-}
-
 
 
 //engrenagem();
@@ -72,6 +45,24 @@ import("joelho.stl");
 rotate([90,0,0])
 */
 
+module parafusos(){
+
+    translate([0,36.5,0])
+    parafuso();
+
+    translate([-15.5,21.5,0])
+    parafuso();
+
+    translate([15.5,21.5,0])
+    parafuso();
+
+    translate([12,-15.5,0])
+    parafuso();
+
+    translate([-12,-15.5,0])
+    parafuso();
+
+}
 
 module acoplamento(){
 
@@ -81,24 +72,11 @@ module acoplamento(){
 
         chanfro();
 
-        translate([0,36.5,0])
-        parafuso();
-
-        translate([-15.5,21.5,0])
-        parafuso();
-
-        translate([15.5,21.5,0])
-        parafuso();
-
-        translate([12,-15.5,0])
-        parafuso();
-
-        translate([-12,-15.5,0])
-        parafuso();
-
+        parafusos();
     }
 
 }
 
-//encaixe();
+
+//encaixe_furado();
 //acoplamento();
