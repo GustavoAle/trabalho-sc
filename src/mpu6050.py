@@ -21,10 +21,16 @@ class MPU():
         self.__current_time = 0
         self.__previous_time = 0
         
+        self.__accl_div = 16384
+        self.__gyro_div = 131
+
         #angulos
         self.__roll = 0
         self.__pitch = 0
         self.__yaw = 0
+        self.__accl_x = 0
+        self.__accl_y = 0
+        
 
         self.__gyro_angle_x = 0
         self.__gyro_angle_y = 0
@@ -81,9 +87,9 @@ class MPU():
 
         while (c < 200):
             raw = self.read(0x3B,6)
-            AccX = (raw[0] << 8 | raw[1]) / 16384.0
-            AccY = (raw[2] << 8 | raw[3]) / 16384.0
-            AccZ = (raw[4] << 8 | raw[5]) / 16384.0
+            AccX = (raw[0] << 8 | raw[1]) / self.__accl_div
+            AccY = (raw[2] << 8 | raw[3]) / self.__accl_div
+            AccZ = (raw[4] << 8 | raw[5]) / self.__accl_div
 
             ## Sum all readings
             AccErrorX = AccErrorX + ((atan((AccY) / sqrt(pow((AccX), 2) + pow((AccZ), 2))) * 180 / pi))
@@ -92,7 +98,7 @@ class MPU():
 
         ##Divide the sum by 200 to get the error value
         self.__accl_error_x = AccErrorX / 200 
-        self.__accl_error_x = AccErrorY / 200 
+        self.__accl_error_y = AccErrorY / 200 
         
         c = 0
         ## Read gyro values 200 times
@@ -106,9 +112,9 @@ class MPU():
             GyroY = raw[2] << 8 | raw[3]
             GyroZ = raw[4] << 8 | raw[5]
             ## Sum all readings
-            GyroErrorX = GyroErrorX + (GyroX / 131.0)
-            GyroErrorY = GyroErrorY + (GyroY / 131.0)
-            GyroErrorZ = GyroErrorZ + (GyroZ / 131.0)
+            GyroErrorX = GyroErrorX + (GyroX / self.__gyro_div)
+            GyroErrorY = GyroErrorY + (GyroY / self.__gyro_div)
+            GyroErrorZ = GyroErrorZ + (GyroZ / self.__gyro_div)
             c = c + 1
 
         ##Divide the sum by 200 to get the error value
@@ -123,36 +129,38 @@ class MPU():
         raw = self.read(0x3B,6)
         #Read 6 registers total, each axis value is stored in 2 registers
         ##For a range of +-2g, we need to divide the raw values by 16384, according to the datasheet
-        AccX = (raw[0] << 8 | raw[1]) / 16384.0 # X-axis value
-        AccY = (raw[2] << 8 | raw[3]) / 16384.0 # Y-axis value
-        AccZ = (raw[3] << 8 | raw[5]) / 16384.0 # Z-axis value
+        AccX = (raw[0] << 8 | raw[1]) / self.__accl_div # X-axis value
+        AccY = (raw[2] << 8 | raw[3]) / self.__accl_div # Y-axis value
+        AccZ = (raw[3] << 8 | raw[5]) / self.__accl_div # Z-axis value
 
         # Calculating Roll and Pitch from the accelerometer data
-        accAngleX = (atan(AccY / sqrt(pow(AccX, 2) + pow(AccZ, 2))) * 180 / pi) + self.__accl_error_x
-        accAngleY = (atan(-1 * AccX / sqrt(pow(AccY, 2) + pow(AccZ, 2))) * 180 / pi) + self.__accl_error_y
+        self.__accl_x = (atan(AccY / sqrt(pow(AccX, 2) + pow(AccZ, 2))) * 180 / pi) - self.__accl_error_x
+        self.__accl_y = (atan(-1 * AccX / sqrt(pow(AccY, 2) + pow(AccZ, 2))) * 180 / pi) - self.__accl_error_y
         # === Read gyroscope data === #
         self.__previous_time = self.__current_time        # Previous time is stored before the actual time read
-        self.__current_time = time.ticks_ms()            # Current time actual time read
-        elapsed_time = (self.__current_time - self.__previous_time) / 1000 # Divide by 1000 to get seconds
+        self.__current_time = time.ticks_us()            # Current time actual time read
+        elapsed_time = (self.__current_time - self.__previous_time) / 1000000 # Divide by 1000 to get seconds
         
         raw = self.read(0x43,6)
         
-        GyroX = (raw[0] << 8 | raw[1]) / 131.0 
         # For a 250deg/s range we have to divide first the raw value by 131.0, according to the datasheet
-        GyroY = (raw[2] << 8 | raw[3]) / 131.0
-        GyroZ = (raw[4] << 8 | raw[5]) / 131.0
+        GyroX = (raw[0] << 8 | raw[1]) / self.__gyro_div 
+        GyroY = (raw[2] << 8 | raw[3]) / self.__gyro_div
+        GyroZ = (raw[4] << 8 | raw[5]) / self.__gyro_div
         # Correct the outputs with the calculated error values
-        GyroX = GyroX + self.__gyro_error_x # GyroErrorX ~(-0.56)
-        GyroY = GyroY + self.__gyro_error_y # GyroErrorY ~(2)
-        GyroZ = GyroZ + self.__gyro_error_z # GyroErrorZ ~ (-0.8)
+        GyroX = GyroX - self.__gyro_error_x # GyroErrorX ~(-0.56)
+        GyroY = GyroY - self.__gyro_error_y # GyroErrorY ~(2)
+        GyroZ = GyroZ - self.__gyro_error_z # GyroErrorZ ~ (-0.8)
         # Currently the raw values are in degrees per seconds, deg/s, so we need to multiply by sendonds (s) to get the angle in degrees
-        self.__gyro_angle_y = self.__gyro_angle_x + GyroX * elapsed_time # deg/s * s = deg
-        self.__gyro_angle_y = self.__gyro_angle_y + GyroY * elapsed_time
+        self.__gyro_x = self.__roll + (GyroX * elapsed_time) # deg/s * s = deg
+        self.__gyro_y = self.__pitch + (GyroY * elapsed_time)
         
         self.__yaw =  self.__yaw + GyroZ * elapsed_time
         
         # Complementary filter - combine acceleromter and gyro angle values
-        self.__roll = 0.96 * self.__gyro_angle_x + 0.04 * accAngleX
-        self.__pitch = 0.96 * self.__gyro_angle_y + 0.04 * accAngleY
+        self.__roll = 0.90 * self.__gyro_angle_x + 0.10 * self.__accl_x
+        self.__pitch = 0.90 * self.__gyro_angle_y + 0.10 * self.__accl_y
+
+        
 
         
