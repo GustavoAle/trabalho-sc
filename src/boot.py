@@ -8,7 +8,7 @@ from mpu6050 import MPU
 from machine import Timer
 
 
-iic = I2C(scl=Pin(14),sda=Pin(12))
+iic = I2C(scl=Pin(14),sda=Pin(12),freq=500000)
 m = MPU(iic)
 m.calculate_imu_error()
 m.calculate_imu_error()

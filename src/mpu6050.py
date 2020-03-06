@@ -131,7 +131,7 @@ class MPU():
         ##For a range of +-2g, we need to divide the raw values by 16384, according to the datasheet
         AccX = (raw[0] << 8 | raw[1]) / self.__accl_div # X-axis value
         AccY = (raw[2] << 8 | raw[3]) / self.__accl_div # Y-axis value
-        AccZ = (raw[3] << 8 | raw[5]) / self.__accl_div # Z-axis value
+        AccZ = (raw[4] << 8 | raw[5]) / self.__accl_div # Z-axis value
 
         # Calculating Roll and Pitch from the accelerometer data
         self.__accl_x = (atan(AccY / sqrt(pow(AccX, 2) + pow(AccZ, 2))) * 180 / pi) - self.__accl_error_x
