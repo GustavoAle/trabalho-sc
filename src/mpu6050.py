@@ -28,12 +28,14 @@ class MPU():
         self.__roll = 0
         self.__pitch = 0
         self.__yaw = 0
+
         self.__accl_x = 0
         self.__accl_y = 0
-        
+        self.__accl_z = 0
 
-        self.__gyro_angle_x = 0
-        self.__gyro_angle_y = 0
+        self.__gyro_x = 0
+        self.__gyro_y = 0
+        self.__gyro_z = 0
         
         
         
@@ -151,15 +153,16 @@ class MPU():
         GyroX = GyroX - self.__gyro_error_x # GyroErrorX ~(-0.56)
         GyroY = GyroY - self.__gyro_error_y # GyroErrorY ~(2)
         GyroZ = GyroZ - self.__gyro_error_z # GyroErrorZ ~ (-0.8)
+
         # Currently the raw values are in degrees per seconds, deg/s, so we need to multiply by sendonds (s) to get the angle in degrees
         self.__gyro_x = self.__roll + (GyroX * elapsed_time) # deg/s * s = deg
         self.__gyro_y = self.__pitch + (GyroY * elapsed_time)
-        
-        self.__yaw =  self.__yaw + GyroZ * elapsed_time
+        #self.__gyro_z = self.__yaw + (GyroZ * elapsed_time)
         
         # Complementary filter - combine acceleromter and gyro angle values
-        self.__roll = 0.90 * self.__gyro_angle_x + 0.10 * self.__accl_x
-        self.__pitch = 0.90 * self.__gyro_angle_y + 0.10 * self.__accl_y
+        self.__roll = 0.90 * self.__gyro_x + 0.10 * self.__accl_x
+        self.__pitch = 0.90 * self.__gyro_y + 0.10 * self.__accl_y
+        #self.__yaw = 0.90 * self.__gyro_z + 0.10 * self.__accl_z 
 
         
 
