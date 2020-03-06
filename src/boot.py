@@ -11,18 +11,17 @@ from machine import Timer
 machine.freq(160000000)
 
 iic = I2C(scl=Pin(14),sda=Pin(12),freq=800000)
-m = MPU(iic)
+m = MPU(iic,iic.scan()[0])
 m.calculate_imu_error()
 m.calculate_imu_error()
 tim = Timer(-1)
 
 
-'''
 def get_angles():
     m.get_filtered_values()
     print("Roll: \t{} \tPitch: \t{}".format(m.__roll, m.__pitch))
-'''
 
-tim.init(period=10, mode=Timer.PERIODIC, callback=lambda t:m.get_filtered_values())
+
+tim.init(period=100, mode=Timer.PERIODIC, callback=lambda t:get_angles())
 
 gc.collect()
