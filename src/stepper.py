@@ -10,6 +10,11 @@ class Stepper():
         self.__pulsedelay__ = pulsedelay
         self.__dirpin__.off()
         self.__steppin__.on()
+
+        self.__maxstep__ = 90
+        self.__minstep__ = -90
+        self.__curstep__ = 0
+
         self.__pulseorder__ = 1
 
     #private: give a pulse into step pin
@@ -21,7 +26,12 @@ class Stepper():
         else:
             self.__steppin__.on()
             time.sleep_us(self.__pulsedelay__)
-            self.__steppin__.off()    
+            self.__steppin__.off()
+
+        if self.dir():
+            self.__curstep__ = self.__curstep__ + 1
+        else:
+            self.__curstep__ = self.__curstep__ - 1
 
     #pulse procedence
     def pulseorder(self,neworder = None):
@@ -49,6 +59,14 @@ class Stepper():
         for i in range(0,nsteps):
             self.__pulse__()
 
-    #invert direction 
+    def step2(self,nsteps = 1):
+        if nsteps > 0 and not self.dir():
+            self.dir(1)
+        if nsteps < 0 and self.dir():
+            self.dir(0)
+        for i in range(0,abs(nsteps)):
+            self.__pulse__()
+
+    #invert direction
     def shiftdir(self):
         self.dir(1 ^ self.__dirpin__.value())

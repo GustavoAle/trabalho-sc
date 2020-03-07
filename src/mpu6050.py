@@ -80,24 +80,11 @@ class MPU():
         xAng = map2(axis_X,265,402,-90,90)
         yAng = map2(axis_Y,265,402,-90,90)
         zAng = map2(axis_Z,265,402,-90,90)
-        x= RAD_TO_DEG * (atan2(-yAng, -zAng)+pi)
-        y= RAD_TO_DEG * (atan2(-xAng, -zAng)+pi)
-        z= RAD_TO_DEG * (atan2(-yAng, -xAng)+pi)
-        print("X angle = {}".format(x))
+        x = RAD_TO_DEG * (atan2(-yAng, -zAng)+pi)
+
+        return x
 
     def get_values(self):
-        '''
-        raw_ints = self.get_raw_values()
-        vals = {}
-        vals["AcX"] = self.bytes_toint(raw_ints[0], raw_ints[1])
-        vals["AcY"] = self.bytes_toint(raw_ints[2], raw_ints[3])
-        vals["AcZ"] = self.bytes_toint(raw_ints[4], raw_ints[5])
-        #vals["Tmp"] = self.bytes_toint(raw_ints[6], raw_ints[7]) / 340.00 + 36.53
-        vals["GyX"] = self.bytes_toint(raw_ints[8], raw_ints[9])
-        vals["GyY"] = self.bytes_toint(raw_ints[10], raw_ints[11])
-        vals["GyZ"] = self.bytes_toint(raw_ints[12], raw_ints[13])
-        return vals  # returned in range of Int16
-        '''
         self.get_filtered_values()
         accx = self.__accl_x
         accy = self.__accl_y
